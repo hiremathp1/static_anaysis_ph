@@ -1,0 +1,61 @@
+Static analysis of javascript algorithm:
+Input: List of function calls 
+Output:  An array of feature values in a row of CSV
+
+Function execute():
+    Function createFolderStructure():
+        // creating report folder
+        REQUIRED_FOLDERS = [_dirname/reports];
+        REQUIRED_FOLDERS.map( (folderPath) => {
+            await fs.mkdir(folderPath);//report folder creating
+        })
+
+    // Getting url from file
+    dataLoaders = Function createDataLoaders(process.argv):
+                         try {
+                            inputContent = await fs.readFile(inputPath, "utf8");
+                        } catch (err) {
+                            console.error("Error while reading the input file", err);
+                            throw err;
+                        }
+                        return inputContent;
+    
+    // Naming csv file
+     const outputFilePath   = __dirname, "reports".csv;
+    // declare variable for result.
+     const processedResults = []; 
+
+    //Loop from file content
+    for (const loader of dataLoaders) {
+        //Getting web content from url.
+        const dataContent = await loader.load();//saving content into variable
+        const processedContent = [];
+        //looping content
+        for (const content of dataContent) {
+            // Return class due to content type such as htm or js
+            const processor = ProcessorFactory.create(content.type):
+                                if (processorMapperByType.hasOwnProperty(content.type)) {
+                                    const P = processorMapperByType[content.type];
+                                    return new P();
+                                }
+            //While call method, it return content
+            const proccessedValue =  processor.process(content)
+                                     if content is hmtl:
+                                            return content
+                                     elseif content is js:
+                                            Function getCalledFunctions(content.data):
+                                                    return parsedCode = acornLoose.parse(stringCode, acornOptions);
+            
+            processedContent.push(proccessedValue);
+        }
+        processedResults.push(...processedContent.flat());
+    }
+
+    //Writing content into csv file and generating csv file
+    const csvContent = Function generateCsvFileContent(processedResults):
+                                    processedResults.forEach(({ functionCalls = {} }) => {
+                                        Object.keys(functionCalls).forEach((fName) => functions.add(fName));
+                                    });
+                                    //declare variable and putting given functions
+                                    const allFunctions = [...functions];
+    return fs.writeFile(outputFilePath, csvContent);

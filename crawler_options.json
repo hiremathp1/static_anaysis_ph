@@ -1,0 +1,5 @@
+{
+  "crawling_attempts": 1,
+  "file_extensions": ["js"],
+  "function_input_filename": "functions.txt"
+}

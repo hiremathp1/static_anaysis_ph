@@ -1,0 +1,45 @@
+
+Algorithm:
+
+Inputs: Web site Url from text file().
+Outputs: Web site content from web  scrapping.
+
+    STRING REQUIRED_FOLDERS <- (_dirname/reports)  //createing report folder
+    
+    STRING dataLoaders <- (createDataLoaders(process.argv)) // Getting url from file
+   
+    STRING outputFilePath   <- ( __dirname, "reports".csv )   // Naming csv file
+    
+    ARRARY processedResults <-   // declare variable for result.
+
+    For dataLoaders AS loader:
+
+    STRING dataContent <- loader.load();//saving content into variable
+    array processedContent;
+
+    FOR datacontent AS content:
+    STRING processor <- ProcessorFactory.create(content.type):
+    IF (processorMapperByType.hasOwnProperty(content.type)) 
+    STRING P <- processorMapperByType[content.type];
+    PRINT new    P();
+    END
+
+    STRING proccessedValue <- processor.process(content)
+    IF content is hmtl:
+    PRINT content
+    ELSE content is js:
+    RETURN getCalledFunctions(content.data):
+    PRINT parsedCode = acornLoose.parse(STRINGCode, acornOptions);
+    END
+    processedContent <= (proccessedValue)
+    END:
+    processedResults.<= (...processedContent.flat());
+    END:
+
+    STRING csvContent <=  generateCsvFileContent(processedResults):
+    FOR processedResults AS fName:
+    add(fName):
+    END:
+    //declare variable and putting given functions
+    STRING allFunctions <= [...functions]:
+    RETURN fs.writeFile(outputFilePath, csvContent):

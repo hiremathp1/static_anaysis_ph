@@ -1,0 +1,40 @@
+{
+  "name": "js-scraper",
+  "version": "1.0.0",
+  "description": "web-security-analyzer",
+  "main": "bin.js",
+  "bin": "bin.js",
+  "scripts": {
+    "start": "node bin.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isseclab-udayton/Malicious_Web_Detection.git"
+  },
+  "keywords": [
+    "puppeteer",
+    "parsing",
+    "scraper"
+  ],
+  "author": {
+    "name": "Praveen",
+    "email": "pnhiremath18@gmail.com",
+    "url": "https://pnhiremath.github.io"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/isseclab-udayton/Malicious_Web_Detection/issues"
+  },
+  "homepage": "https://github.com/isseclab-udayton/Malicious_Web_Detection.git#readme",
+  "dependencies": {
+    "acorn": "^7.1.0",
+    "acorn-loose": "^7.0.0",
+    "acorn-walk": "^7.0.0",
+    "csv-stringify": "^5.4.3",
+    "moment": "^2.24.0",
+    "promise-fs": "^2.1.1",
+    "puppeteer": "^2.0.0",
+    "puppeteer-extra": "^2.1.3",
+    "puppeteer-extra-plugin-stealth": "^2.2.2"
+  }
+}
