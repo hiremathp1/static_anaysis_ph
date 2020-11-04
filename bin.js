@@ -6,93 +6,93 @@ const fs = require("promise-fs");
 const moment = require("moment");
 
 // Application Modules
-const { ProcessorFactory } = require("./src/processor");
-const createDataLoaders = require("./src/cli");
-const { generateCsvFileContent } = require("./src/data_processing");
-const { isRegExp } = require("util");
+const {ProcessorFactory} = require("./src/processor");
+const PuppeteerDataLoader = require("./src/cli");
+const {generateCsvFileContent} = require("./src/data_processing");
 
 // Constants
 const REPORTS_DIR = path.resolve(__dirname, "reports");
-const FAILEDURLS_DIR = path.resolve(__dirname, "FailedURLs");
-const REQUIRED_FOLDERS = [REPORTS_DIR, FAILEDURLS_DIR];
+const REQUIRED_FOLDERS = [REPORTS_DIR];
+
+function chunkArray(myArray, chunk_size) {
+  if (chunk_size) {
+    var results = [];
+    while (myArray.length) {
+      results.push(myArray.splice(0, chunk_size));
+    }
+    return results;
+  }
+  else {
+    return [myArray];
+  }
+}
+
+async function scrape(dataLoaders) {
+  // Go through each loader, fetching and processing their data.
+  const processedResults = [];
+  for (const loader of dataLoaders) {
+    const dataContent = await loader.load();
+    if (dataContent == null) {
+      continue;
+    }
+
+    const processedContent = [];
+    for (const content of dataContent) {
+      console.log("Processing ", content.url);
+      const processor = ProcessorFactory.create(content.type);
+      const proccessedValue = await processor.process(content);
+      processedContent.push(proccessedValue);
+    }
+
+    processedResults.push(...processedContent.flat());
+  }
+  return processedResults;
+}
 
 (async function execute() {
+  // Measure execution time
+  const startTime = new Date();
+
   // Create the necessary folder structure for the program.
   await createFolderStructure();
 
+  // Get the last command line argument.
+  const inputPath = path.resolve(process.argv[2]);
+
   // Get data loaders.
-  const dataLoaders = await createDataLoaders(process.argv);
+  const dataLoader = new PuppeteerDataLoader();
+  const dataLoaders = await dataLoader.createDataLoaders(inputPath);
 
-  function timeStamp() {
-    // Create a date object with the current time
-    var now = new Date();
+  // Number of threads
+  const numThreads = parseInt(process.argv.pop());
+  if (numThreads)
+    console.log(`Launching ${numThreads} tasks`)
 
-    // Create an array with the current month, day and time
-    var date = [now.getMonth() + 1, now.getDate(), now.getFullYear()];
+  // Output file name
+  const date = moment().format();
+  const outputFilePath = path.resolve(REPORTS_DIR, `${date}.csv`);
+  var processedResults;
+  if (numThreads) {
+    processedResults = await Promise.all(chunkArray(dataLoaders, numThreads).map(scrape));
+    processedResults = processedResults.flat();
+  }
+  else {
+    processedResults = await scrape(dataLoaders);
+  }
+  await dataLoader.closeBrowser();
 
-    // Create an array with the current hour, minute and second
-    var time = [now.getHours(), now.getMinutes(), now.getSeconds()];
-
-    // Determine AM or PM suffix based on the hour
-    var suffix = time[0] < 12 ? "AM" : "PM";
-
-    // Convert hour from military time
-    time[0] = time[0] < 12 ? time[0] : time[0] - 12;
-
-    // If hour is 0, set it to 12
-    time[0] = time[0] || 12;
-
-    // If seconds and minutes are less than 10, add a zero
-    for (var i = 1; i < 3; i++) {
-      if (time[i] < 10) {
-        time[i] = "0" + time[i];
-      }
+  console.log(`Exporting results to CSV at: ${outputFilePath}`)
+  const csvContent = await generateCsvFileContent(processedResults);
+  fs.writeFileSync(outputFilePath, csvContent, (err) => {
+    if (err) {
+      console.log("An error ocurried saving the file. Outputing to stdout:");
+      console.log(csvContent);
+      throw err;
     }
-
-    // Return the formatted string
-    return date.join("-") + "+" + time.join("-") + suffix;
-  }
-
-  // Go through each loader, fetching and processing their data.
-  const processedResults = [];
-  const failedURLS = [];
-  for (const loader of dataLoaders) {
-    const dataContent = await loader.load();
-    if (!dataContent.err) {
-      const processedContent = [];
-      for (const content of dataContent) {
-        console.log("Processing ", content.url);
-        const processor = ProcessorFactory.create(content.type);
-        const proccessedValue = await processor.process(content);
-        processedContent.push(proccessedValue);
-      }
-
-      processedResults.push(...processedContent.flat());
-    } else failedURLS.push(dataContent.err);
-  }
-  const crawler = await fs.readFile("crawler.txt", "utf8");
-  
-  let givenLinks = crawler.split("\n");
-  const newDate = new Date();
-  let finalResults = [];
-  processedResults.map((result) => {
-    result.data = "";
-    finalResults.push(result);
   });
-  const csvContent = await generateCsvFileContent(finalResults);
-  const file = await fs.writeFile(
-    __dirname + `/reports/${timeStamp()}.csv`,
-    csvContent
-  );
-  let urlData = failedURLS.join();
-   await fs.writeFile(
-    __dirname + `/failedURLs/${timeStamp()}.txt`,
-    urlData
-  );
-
-  console.log(`Failed URL's`);
-  console.log(failedURLS);
-  return file;
+  const endTime = new Date();
+  console.log(`Finished in ${endTime.getSeconds() - startTime.getSeconds()}s`)
+  return process.exit(0);
 })();
 
 function createFolderStructure() {

@@ -1,5 +1,9 @@
 {
-  "crawling_attempts": 1,
+  "crawling_attempts": 3,
   "file_extensions": ["js"],
-  "function_input_filename": "functions.txt"
+  "file_page": ["HTML"],
+  "function_input_filename": "functions.txt",
+  "chromium_fallback_path": "/usr/bin/chromium",
+  "jquery_header_prefix": "JQ_",
+  "jquery_total": true
 }

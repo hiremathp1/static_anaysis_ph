@@ -5,34 +5,59 @@ const path = require("path");
 // Loaders
 const { FileSystemLoader, WebLoader } = require("./loader");
 
+// Puppeteer Modules
+const puppeteer = require("puppeteer-extra");
+const pluginStealth = require("puppeteer-extra-plugin-stealth");
+
+// Configure Puppeteer
+puppeteer.use(pluginStealth());
+
 // Configuration files
 const options = require("../crawler_options.json");
 
-async function createDataLoaders(cliArguments) {
-  // Get the last command line argument.
-  const inputPath = path.resolve(cliArguments[cliArguments.length - 1]);
-  const inputStats = await fs.stat(inputPath);
+class PuppeteerDataLoader{
+  constructor(){}
 
-  if (inputStats.isDirectory()) {
-    return [new FileSystemLoader(inputPath, options)];
+  async closeBrowser(){
+    this.browser.close();
   }
 
-  // Variable to hold the input text file contents.
-  let inputContent;
+  async createDataLoaders(inputPath) {
+    const inputStats = await fs.stat(inputPath);
 
-  // Tries to read the file with the URLs.
-  try {
-    inputContent = await fs.readFile(inputPath, "utf8");
-  } catch (err) {
-    console.error("Error while reading the input file", err);
-    throw err;
+    if (inputStats.isDirectory()) {
+      return [new FileSystemLoader(inputPath, options)];
+    }
+
+    // Variable to hold the input text file contents.
+    let inputContent;
+
+    // Tries to read the file with the URLs.
+    try {
+      inputContent = await fs.readFile(inputPath, "utf8");
+    } catch (err) {
+      console.error("Error while reading the input file", err);
+      throw err;
+    }
+
+    var browser;
+    try{
+      browser = await puppeteer.launch({
+        headless: true,
+      });
+    }
+    catch{
+      browser = await puppeteer.launch({
+        headless: true,
+        executablePath: options.chromium_fallback_path
+      });
+    }
+    this.browser = browser;
+    // Return an array populated with the list of URLs to fetch.
+    return inputContent
+      .split(/[\r\n]+/)
+      .filter((url) => url !== "")
+      .map((url) => new WebLoader(url, options, browser));
   }
-
-  // Return an array populated with the list of URLs to fetch.
-  return inputContent
-    .split(/[\r\n]+/)
-    .filter((url) => url !== "")
-    .map((url) => new WebLoader(url, options));
 }
-
-module.exports = createDataLoaders;
+module.exports = PuppeteerDataLoader;

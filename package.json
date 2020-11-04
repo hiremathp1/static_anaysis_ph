@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "description": "web-security-analyzer",
   "main": "bin.js",
-  "bin": "bin.js",
   "scripts": {
-    "start": "node bin.js"
+    "start": "node --unhandled-rejections=strict bin.js crawler.txt"
   },
   "repository": {
     "type": "git",
