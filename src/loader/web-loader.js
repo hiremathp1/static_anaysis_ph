@@ -36,15 +36,21 @@ class WebLoader {
             if (response.status) {
                 status = response.status();
             }
+            // console.log(`TEST: ${response.url()}; ${resourceType}`)
 
             if (
                 status &&
-                !(status > 299 && status < 400) &&
+                (!(status > 299 && status < 400) || (status == 304 && options.count_cached_js)) &&
                 !(status === 204) &&
-                !(resourceType === "image") &&
+                (resourceType === "script") &&
                 externalScripts.hasOwnProperty(url)
             ) {
-                externalScripts[url] = await response.text();
+                try {
+                    externalScripts[url] = await response.text();
+                } catch (e) {
+                    /* handle error */
+                    console.log(`Failed to load url because: ${e}`)
+                }
             }
         });
 

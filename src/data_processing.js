@@ -58,19 +58,30 @@ if (fs.existsSync(inputFunctionsPath)) {
  * @return {String} - CSV data ready to be written into the file system.
  */
 module.exports.generateCsvFileContent = async (processedResults) => {
-    // The functions identifiers, the 2th ... n-2 or n-1 columns of our CSV file.
-    const functions = new Set();
+    let allFunctions;
 
-    // Iterate over the provided counters, function names.
-    processedResults.forEach(({ functionCalls = {} }) => {
-        Object.keys(functionCalls).forEach((fName) => functions.add(fName));
-    });
+    // Make display all functions in functions.txt optional
+    if (options.hide_unused_funcNames){
+        // The functions identifiers, the 2th ... n-2 or n-1 columns of our CSV file.
+        const functions = new Set();
 
-    // Transform the Set into a array for simple iteration and transformation.
-    const allFunctions = [...functions].sort((fName1, fName2) => functionsToFilter.indexOf(fName1) - functionsToFilter.indexOf(fName2));
+        // Iterate over the provided counters, function names.
+        processedResults.forEach(({ functionCalls = {} }) => {
+            Object.keys(functionCalls).forEach((fName) => functions.add(fName));
+        });
+
+        // Transform the Set into a array for simple iteration and transformation and sort in the order it appears in functions.txt
+        allFunctions = [...functions].sort((fName1, fName2) => functionsToFilter.indexOf(fName1) - functionsToFilter.indexOf(fName2));
+    }else{
+        // use all functions as columns
+        allFunctions = functionsToFilter;
+    }
+
     const functionHeaders = allFunctions.map((fName) => JqueryCalls.includes(fName) ? options.jquery_header_prefix + fName : fName)
 
     const csvHeader = ["link", ...functionHeaders, ...(options.jquery_total ? ["JqueryTotal"] : []), "ExternalJs"];
+    
+    // Iterates over the list of encountered links from end to beginning
     const { list: csvBody } = processedResults.reduceRight(
         (acc, result) => {
             const { type, origin, data, url, functionCalls = {} } = result;
@@ -79,6 +90,7 @@ module.exports.generateCsvFileContent = async (processedResults) => {
             const isHtml = type === "html";
 
 
+            // Populate count of found functions 
             if (isWebLoader && isJs) {
                 Object.entries(functionCalls).forEach(([fName, calls]) => {
                     if (!Object.prototype.hasOwnProperty.call(acc.counters, fName)) {
@@ -94,6 +106,9 @@ module.exports.generateCsvFileContent = async (processedResults) => {
                 allFunctions,
                 isWebLoader && isHtml ? acc.counters : functionCalls
             );
+
+            // If is a crawler.txt site then is time to reset the counters and
+            // add a new row.
             if (!(isWebLoader && isJs)) {
                 acc.jsList = acc.jsList.filter((jsUrl) => url_module.parse(jsUrl).hostname != url_module.parse(url).hostname);
                 let jqueryCounter;
@@ -104,15 +119,14 @@ module.exports.generateCsvFileContent = async (processedResults) => {
                 const row = [link, ...formattedFunctionCalls, ...(options.jquery_total ? [jqueryCounter] : []), acc.jsList.length];
                 acc.list = [row, ...acc.list];
                 acc.jsList = [];
-            } else {
-                if (typeof acc.jsList !== 'undefined' && isJs && url !== "page_script") {
-                    acc.jsList.push(url);
-                }
-                else {
+            } else if (isJs && url !== "page_script") {
+                if (typeof acc.jsList === 'undefined') {
                     acc.jsList = [];
                 }
+                acc.jsList.push(url);
             }
 
+            // Reset counters
             if (isWebLoader && isHtml) {
                 acc.counters = {};
             }

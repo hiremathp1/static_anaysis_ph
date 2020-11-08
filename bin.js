@@ -63,7 +63,7 @@ async function scrape(dataLoaders) {
   const dataLoader = new PuppeteerDataLoader();
   const dataLoaders = await dataLoader.createDataLoaders(inputPath);
 
-  // Number of threads
+  // Number of threads #TODO 
   const numThreads = parseInt(process.argv.pop());
   if (numThreads)
     console.log(`Launching ${numThreads} tasks`)
@@ -90,8 +90,7 @@ async function scrape(dataLoaders) {
       throw err;
     }
   });
-  const endTime = new Date();
-  console.log(`Finished in ${endTime.getSeconds() - startTime.getSeconds()}s`)
+  console.log(`Finished in ${new Date() - startTime}ms`);
   return process.exit(0);
 })();
 
