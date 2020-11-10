@@ -19,7 +19,7 @@ class PuppeteerDataLoader{
   constructor(){}
 
   async closeBrowser(){
-    this.browser.close();
+    await this.browser.close();
   }
 
   async createDataLoaders(inputPath) {
@@ -39,7 +39,16 @@ class PuppeteerDataLoader{
       console.error("Error while reading the input file", err);
       throw err;
     }
+    await this.openBrowser();
 
+    // Return an array populated with the list of URLs to fetch.
+    return inputContent
+      .split(/[\r\n]+/)
+      .filter((url) => url !== "")
+      .map((url) => new WebLoader(url, options, this.browser));
+  }
+
+  async openBrowser(){
     var browser;
     try{
       browser = await puppeteer.launch({
@@ -53,11 +62,6 @@ class PuppeteerDataLoader{
       });
     }
     this.browser = browser;
-    // Return an array populated with the list of URLs to fetch.
-    return inputContent
-      .split(/[\r\n]+/)
-      .filter((url) => url !== "")
-      .map((url) => new WebLoader(url, options, browser));
   }
 }
 module.exports = PuppeteerDataLoader;

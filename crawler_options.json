@@ -7,5 +7,6 @@
   "jquery_header_prefix": "jq_",
   "jquery_total": true,
   "hide_unused_funcNames": false,
-  "count_cached_js": true
+  "count_cached_js": true,
+  "nurls_browser_restart": 25
 }

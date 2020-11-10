@@ -4,7 +4,7 @@
   "description": "web-security-analyzer",
   "main": "bin.js",
   "scripts": {
-    "start": "node --unhandled-rejections=strict bin.js crawler.txt"
+      "start": "node --max-old-space-size=12288 --unhandled-rejections=strict bin.js"
   },
   "repository": {
     "type": "git",

@@ -6,15 +6,16 @@ class WebLoader {
         this.url = url;
         this.attempts = options.crawling_attempts;
         this.browser = browser;
+        this.options = options;
     }
 
-    async exec(url) {
+    async exec(url, alternativeBrowser) {
         const contentArray = [];
         const externalScripts = {};
 
-        var browser = this.browser;
+        var browser = alternativeBrowser === false ? this.browser : alternativeBrowser;
         const page = await browser.newPage();
-        await page.setViewport({ width: 1280, height: 720 });
+        await page.setViewport({width: 1280, height: 720});
         await page.setRequestInterception(true);
 
         page.on("request", async (request) => {
@@ -36,11 +37,11 @@ class WebLoader {
             if (response.status) {
                 status = response.status();
             }
-            // console.log(`TEST: ${response.url()}; ${resourceType}`)
+            // console.log(`TEST: ${response.url()}; ${resourceType}; ${status}`)
 
             if (
                 status &&
-                (!(status > 299 && status < 400) || (status == 304 && options.count_cached_js)) &&
+                (!(status > 299 && status < 400) || (status == 304 && this.options.count_cached_js)) &&
                 !(status === 204) &&
                 (resourceType === "script") &&
                 externalScripts.hasOwnProperty(url)
@@ -51,6 +52,13 @@ class WebLoader {
                     /* handle error */
                     console.log(`Failed to load url because: ${e}`)
                 }
+            }
+        });
+
+        page.on('error', err => {
+            if (!page.isClosed()) {
+                //Close page if not closed already
+                page.close();
             }
         });
 
@@ -73,7 +81,7 @@ class WebLoader {
 
         await page.close();
 
-        contentArray.push({ type: "html", data: htmlContent, url });
+        contentArray.push({type: "html", data: htmlContent, url});
         contentArray.push(
             ...pageLevelScripts.map((content) => ({
                 type: "js",
@@ -87,20 +95,20 @@ class WebLoader {
             }))
         );
 
-        return contentArray.map((c) => ({ ...c, origin: "WebLoader" }));
+        return contentArray.map((c) => ({...c, origin: "WebLoader"}));
     }
 
-    async load() {
+    async load(browser = false) {
         let retValue = null;
 
         for (let i = 0; i < this.attempts; i++) {
             console.log("Scraping ", this.url);
             try {
-                retValue = await this.exec(this.url);
+                retValue = await this.exec(this.url, browser);
                 break;
             } catch (err) {
                 console.log(`Error fetching data from ${this.url}. `);
-                // console.debug(err);
+                console.debug(err);
                 retValue = null;
             }
         }
