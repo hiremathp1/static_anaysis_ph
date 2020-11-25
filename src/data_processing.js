@@ -110,6 +110,8 @@ module.exports.generateCsvFileContent = async (processedResults) => {
             // If is a crawler.txt site then is time to reset the counters and
             // add a new row.
             if (!(isWebLoader && isJs)) {
+                if (acc.jsList == null)
+                    acc.jsList = []
                 acc.jsList = acc.jsList.filter((jsUrl) => url_module.parse(jsUrl).hostname != url_module.parse(url).hostname);
                 let jqueryCounter;
                 if (options.jquery_total) {

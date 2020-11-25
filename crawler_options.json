@@ -1,5 +1,5 @@
 {
-  "crawling_attempts": 3,
+  "crawling_attempts": 1,
   "file_extensions": ["js"],
   "file_page": ["HTML"],
   "function_input_filename": "functions.txt",

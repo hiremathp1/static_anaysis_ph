@@ -1,0 +1,14 @@
+Sources for Static analysis 
+
+
+Url Based  Malicious data: 
+
+1. https://github.com/mitchellkrogza/The-Big-List-of-Hacked-Malware-Web-Sites/blob/master/hacked-domains.list
+2. https://github.com/DZetaDev/Blacklist-Alpha/blob/master/spammers_domains.txt
+3. https://github.com/mitchellkrogza/Phishing-URL-Testing-Database-of-Link-Statuses
+
+Url based Alexa 1m web urls
+
+File Based malicious JS source:
+1. https://github.com/HynekPetrak/javascript-malware-collection/tree/master/1936
+2. 
