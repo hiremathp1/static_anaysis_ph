@@ -1,4 +1,4 @@
-# JS Scraper
+# STATIC ANALYSIS
 
 ## System Requirements
 
